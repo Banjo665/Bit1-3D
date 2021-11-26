@@ -11,6 +11,8 @@ public class camera_script : MonoBehaviour
     Vector3 objectEulerAngles;
     Vector3 cameraEulerAngles;
     GameObject Player;
+
+    bool mouseDown;
     
     void Start(){
         Player = GameObject.FindWithTag("Player");
