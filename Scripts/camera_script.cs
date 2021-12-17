@@ -4,38 +4,44 @@ using UnityEngine;
 
 public class camera_script : MonoBehaviour
 {
+    int layerMask;
+
     public float minAngle = -50.0f;
     public float maxAngle = 50.0f;
 
-    Vector3 initOffset;
-    Vector3 offset;
+    float offset;
     Vector3 objectEulerAngles;
     Vector3 cameraEulerAngles;
     GameObject Player;
 
+    bool moving;
     bool rotated;
     
+    Vector3 nextPos;
+
     void Start(){
         Player = GameObject.FindWithTag("Player");
-        initOffset = transform.position - Player.transform.position;
+
+        layerMask = 1 << 9;
     }
 
     void Update(){
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = -Input.GetAxis("Mouse Y");
+        float useInput = Input.GetAxis("Use");
 
         Vector3 forw = transform.forward;
         Vector3 dirHoriz = Quaternion.Euler(0, 90, 0) * forw;
         
         if(!rotated){
-            offset = initOffset;
+            transform.position -= dirHoriz * offset;
+            offset = 0;
         }
 
-        float rotationX = Mathf.Clamp(mouseY + cameraEulerAngles.x, -50f, 50f);
+        float rotationX = Mathf.Clamp(mouseY + cameraEulerAngles.x, minAngle, maxAngle);
         objectEulerAngles += new Vector3(0, mouseX, 0);
         cameraEulerAngles = new Vector3(rotationX, objectEulerAngles.y, 0);
         
-        transform.position = Player.transform.position + offset;
         transform.eulerAngles = cameraEulerAngles;
         Player.transform.eulerAngles = objectEulerAngles;
 
@@ -50,15 +56,32 @@ public class camera_script : MonoBehaviour
             if (Physics.Raycast(transform.position, forw, 1f) && (rayLeft != rayRight) && !rotated){
                 rotated = true;
                 if(rayLeft){
-                    offset += dirHoriz * 0.5f;
+                    offset = 0.5f;
                 }
                 else{
-                    offset += -dirHoriz * 0.5f;
+                    offset = -0.5f;
                 }
+                transform.position += dirHoriz * offset;
             }
         }
         if(Input.GetMouseButtonUp(1) || !Physics.Raycast(Player.transform.position, forw, 1f)){
             rotated = false;
+        }
+
+        if(Input.GetKeyDown("e")){
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, transform.forward, out hit, 0.5f, layerMask)){
+                GameObject door1 = hit.transform.GetChild(0).gameObject;
+                GameObject door2 = hit.transform.GetChild(1).gameObject;
+                if(door1.GetComponent<Door_script>().open){
+                    door1.GetComponent<Door_script>().closeDoor();
+                    door2.GetComponent<Door_script>().closeDoor();
+                }
+                else{
+                    door1.GetComponent<Door_script>().openDoor();
+                    door2.GetComponent<Door_script>().openDoor();
+                }
+            }
         }
     }
 }
