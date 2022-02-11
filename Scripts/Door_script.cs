@@ -26,12 +26,15 @@ public class Door_script : MonoBehaviour
     Vector3 currentDoorPosition;
     float openTime = 0;
 
+    AudioSource soundControl;
+
     void Start()
     {
         if (doorBody)
         {
             defaultDoorPosition = doorBody.localPosition;
         }
+        soundControl = transform.parent.Find("soundSource").GetComponent<AudioSource>();
     }
 
     // Main function
@@ -62,16 +65,22 @@ public class Door_script : MonoBehaviour
     // Activate the Main function when Player enter the trigger area
     public void openDoor()
     {
-        open = true;
-        currentDoorPosition = doorBody.localPosition;
-        openTime = 0;
+        if(openTime > 1f){
+            soundControl.Play();
+            open = true;
+            currentDoorPosition = doorBody.localPosition;
+            openTime = 0;
+        }
     }
 
     // Deactivate the Main function when Player exit the trigger area
     public void closeDoor()
     {
-        open = false;
-        currentDoorPosition = doorBody.localPosition;
-        openTime = 0;
+        if(openTime > 1f){
+            soundControl.Play();
+            open = false;
+            currentDoorPosition = doorBody.localPosition;
+            openTime = 0;
+        }
     }
 }

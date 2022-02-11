@@ -1,35 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class player_script : MonoBehaviour
 {
-    public float jumpVel = 5;
+    private float health = 100;
+    public float timeToHeal = 3f;
+    private float timeFromHit;
+    public GameObject BloodImage;
+
     public float distToGrounded = 0.5f;
     public LayerMask ground;
 
     public float downAccel = 0.5f;
-
     public float inputDelay = 0.1f;
-
     Vector3 velocity = Vector3.zero;
 
     public float movementSpeed = 5f;
-    public float jumpForce = 10f;
     public float maxStamina = 3f;
-    public float sprintingspeed = 3f;
+    public float sprintingSpeed = 3f;
     public float staminaRegen = 0.5f;
     public float timeToRest = 2f;
 
     float jumpInput;
-    
+    public float jumpVel = 5;
     public float gravityScale = 1.0f;
     public static float globalGravity = -9.81f;
 
 
-    float stamina;
+    public float stamina;
+    public float jumpStamina = 1;
     float startTime;
-    float distToGround;
     GameObject camera;
     Rigidbody rb;
     Vector3 cameraOffset;
@@ -40,15 +42,17 @@ public class player_script : MonoBehaviour
     bool crouching;
     bool crouched;
     bool standing;
+
+    private Image image;
     
     void Start(){
-        distToGround = GetComponent<Collider>().bounds.extents.y;
         rb = GetComponent<Rigidbody>();
         stamina = maxStamina;
         startTime = -timeToRest;
         camera = Camera.main.gameObject;
         cameraOffset = Vector3.up;
         soundControl = GetComponent<playerSoundControl>();
+        image = BloodImage.GetComponent<Image>();
     }
 
     bool Grounded()
@@ -57,6 +61,21 @@ public class player_script : MonoBehaviour
     }
 
     void Update(){
+        Color tempColor = image.color;
+        tempColor.a = 1f - health / 100f;
+        image.color = tempColor;
+        if(timeFromHit <= 0 && health <= 100){
+            health += Time.deltaTime;
+        }
+        else if(timeFromHit > 0){
+            timeFromHit -= Time.deltaTime;
+        }
+    }
+
+    void FixedUpdate(){
+        if(health <= 0){
+            return;
+        }
 
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
@@ -73,11 +92,11 @@ public class player_script : MonoBehaviour
             stamina = stamina + Time.deltaTime * staminaRegen;
             sprintSpeed = 0;
         }
-        stamina = Mathf.Clamp(stamina, 0f, 3f);
+        stamina = Mathf.Clamp(stamina, 0f, maxStamina);
         if(stamina == 0){
             startTime = Time.time;
         }
-        float speed = movementSpeed + sprintInput * sprintSpeed * sprintingspeed;
+        float speed = movementSpeed + sprintInput * sprintSpeed * sprintingSpeed;
         
         if(crouched){
             speed *= 0.3f;
@@ -99,11 +118,12 @@ public class player_script : MonoBehaviour
             crouching = false;
         }
         
-        Vector3 rotatedForward = new Vector3(transform.forward.z, -transform.forward.y, -transform.forward.x); // 90 degree 3D vector rotation around Y
+        Vector3 rotatedForward = Quaternion.Euler(0, 90, 0) * transform.forward;
         Vector3 movementY = rotatedForward * horizontalInput * speed * Time.deltaTime;
         Vector3 movementX = transform.forward * verticalInput * speed * Time.deltaTime;
         
-
+        Jump();
+        rb.velocity = transform.TransformDirection(velocity);
         transform.position += movementX + movementY;
         
 
@@ -118,16 +138,11 @@ public class player_script : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
-    {
-        Jump();
-        rb.velocity = transform.TransformDirection(velocity);
-    }
-
     void Jump()
     {
-        if(jumpInput > 0 && Grounded() && !crouched && !crouching)
+        if(jumpInput > 0 && Grounded() && stamina > 1 && !crouched && !crouching)
         {
+            stamina -= jumpStamina;
             velocity.y = jumpVel;
         }
         else if (jumpInput == 0 && Grounded())
@@ -140,4 +155,8 @@ public class player_script : MonoBehaviour
         }
     }
 
+    public void changeHealth(int value){
+        health += value;
+        timeFromHit = timeToHeal;
+    }
 }

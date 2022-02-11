@@ -4,14 +4,19 @@ using UnityEngine;
 
 public class GUI_script : MonoBehaviour
 {
-    GUIStyle style = new GUIStyle();
+    GUIStyle cross = new GUIStyle();
+    GUIStyle textStyle = new GUIStyle();
+    player_script player;
 
     void Start(){
-        style.fontSize = 20;
-        style.normal.textColor = Color.black;
+        cross.fontSize = 20;
+        cross.normal.textColor = Color.black;
+        textStyle.fontSize = 20;
+        textStyle.normal.textColor = Color.white;
+        player = GameObject.FindWithTag("Player").GetComponent<player_script>();
     }
 
     void OnGUI() {
-        GUI.Label (new Rect (new Vector2(Screen.width / 2, Screen.height / 2), new Vector2(500, 500)), "+", style);
+        GUI.Label (new Rect (new Vector2(Screen.width / 2, Screen.height / 2), new Vector2(500, 500)), "+", cross);
     }
 }

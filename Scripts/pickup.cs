@@ -12,6 +12,9 @@ public class pickup : MonoBehaviour
     public GameObject prefab;
     public Camera Camera;
 
+
+   
+
     void Start()
     {
         hasItem = false;
@@ -28,6 +31,7 @@ public class pickup : MonoBehaviour
         if (Physics.Raycast(MainCamera.transform.position, MainCamera.transform.forward, out hit, 2f, layerMask)){
             ObjectIwantToPickUp = hit.transform.gameObject;
             return true;
+            
         }
         else{
             return false;
